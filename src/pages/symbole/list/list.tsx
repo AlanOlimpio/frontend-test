@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useSymbolsList } from "@/contexts/symbols-contexts";
+import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import { getSymbols } from "@/services/get-symbols";
 import { useEffect, useState } from "react";
@@ -13,6 +14,7 @@ export function List() {
   const [symbols, setSymbols] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
+  const debouncedValue = useDebounce(query);
 
   useEffect(() => {
     getSymbols().then((data) => {
@@ -24,7 +26,7 @@ export function List() {
   }, []);
 
   const filteredSymbols = symbols.filter((s) =>
-    s.includes(query.toLowerCase())
+    s.includes(debouncedValue.toLowerCase())
   );
 
   const toggleSelected = (symbol: string) => {
