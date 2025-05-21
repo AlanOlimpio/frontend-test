@@ -8,10 +8,11 @@
       "path": "./tsconfig.node.json"
     }
   ],
-  "compilerOptions": {
+   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
-  }
+    }, 
+    "types": ["vitest/globals"]
+  },
 }
