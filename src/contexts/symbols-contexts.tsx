@@ -8,10 +8,12 @@ export interface SymbolData {
 }
 
 export interface SymbolslistContextType {
-  symbols: string[];
   prices: Record<string, SymbolData>;
-  addSymbol: (symbol: string) => void;
-  addSymbols: (symbols: string[]) => void;
+  lists: Record<string, string[]>;
+  createList: (name: string) => void;
+  setCurrentList: (name: string) => void;
+  currentList: string;
+  addSymbolsToCurrentList: (symbols: string[]) => void;
 }
 
 export const SymbolslistContext = createContext<
@@ -31,13 +33,14 @@ export const SymbolslistProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [symbols, setSymbols] = useState<string[]>([]);
   const [prices, setPrices] = useState<Record<string, SymbolData>>({});
+  const [lists, setLists] = useState<Record<string, string[]>>({ Default: [] });
+  const [currentList, setCurrentList] = useState<string>("Default");
 
   useEffect(() => {
-    if (symbols.length === 0) return;
+    if (lists[currentList].length === 0) return;
 
-    const streamPath = symbols.map((s) => `${s}@ticker`).join("/");
+    const streamPath = lists[currentList].map((s) => `${s}@ticker`).join("/");
     const socket = new WebSocket(
       `wss://stream.binance.com:9443/stream?streams=${streamPath}`
     );
@@ -52,24 +55,33 @@ export const SymbolslistProvider = ({
     };
 
     return () => socket.close();
-  }, [symbols]);
+  }, [lists]);
 
-  const addSymbol = (symbol: string) => {
-    const lower = symbol.toLowerCase();
-    setSymbols((prev) => (prev.includes(lower) ? prev : [...prev, lower]));
+  const addSymbolsToCurrentList = (symbolsToAdd: string[]) => {
+    setLists((prev) => {
+      const lowerSymbols = symbolsToAdd.map((s) => s.toLowerCase());
+      const current = prev[currentList] || [];
+      const newSymbols = lowerSymbols.filter((s) => !current.includes(s));
+      return { ...prev, [currentList]: [...current, ...newSymbols] };
+    });
   };
 
-  const addSymbols = (symbolsToAdd: string[]) => {
-    setSymbols((prev) => {
-      const lowerSymbols = symbolsToAdd.map((s) => s.toLowerCase());
-      const newSymbols = lowerSymbols.filter((s) => !prev.includes(s));
-      return [...prev, ...newSymbols];
-    });
+  const createList = (name: string) => {
+    if (!name || lists[name]) return;
+    setLists((prev) => ({ ...prev, [name]: [] }));
+    setCurrentList(name);
   };
 
   return (
     <SymbolslistContext.Provider
-      value={{ symbols, prices, addSymbol, addSymbols }}
+      value={{
+        prices,
+        createList,
+        currentList,
+        setCurrentList,
+        lists,
+        addSymbolsToCurrentList,
+      }}
     >
       {children}
     </SymbolslistContext.Provider>

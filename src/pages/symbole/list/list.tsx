@@ -9,7 +9,7 @@ import { getSymbols } from "@/services/get-symbols";
 import { useEffect, useState } from "react";
 
 export function List() {
-  const { addSymbols } = useSymbolsList();
+  const { addSymbolsToCurrentList } = useSymbolsList();
   const [symbols, setSymbols] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
@@ -48,7 +48,7 @@ export function List() {
   }
 
   const handleAddSelected = () => {
-    addSymbols(selected);
+    addSymbolsToCurrentList(selected);
     setSelected([]);
   };
 
@@ -84,7 +84,7 @@ export function List() {
                     <li
                       key={symbol}
                       className={cn(
-                        "flex py-4  p-4 uppercase",
+                        "flex p-4 uppercase",
                         selected.includes(symbol) && "bg-green-200"
                       )}
                       onClick={() => toggleSelected(symbol)}
